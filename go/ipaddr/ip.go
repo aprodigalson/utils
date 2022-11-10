@@ -5,6 +5,9 @@ import (
 	"net"
 )
 
+// GetLastIPInCidr 获取cidr对应网段的最后一个地址
+//  @param cidr
+//  @return net.IP
 func GetLastIPInCidr(cidr net.IPNet) net.IP {
 	switch len(cidr.IP) {
 	case net.IPv4len:
