@@ -13,11 +13,10 @@ func GetLastIPInCidr(cidr net.IPNet) net.IP {
 	case net.IPv4len:
 		return getLastIPInCidrV4(cidr)
 	case net.IPv6len:
+		return getLastIPInCidrV6(cidr)
 	default:
 		return nil
 	}
-	return nil
-
 }
 
 func getLastIPInCidrV4(cidr net.IPNet) net.IP {
@@ -27,5 +26,21 @@ func getLastIPInCidrV4(cidr net.IPNet) net.IP {
 	lastIPInt := (ipInt32 & mask) | (mask ^ 0xffffffff)
 	ip := make(net.IP, 4)
 	binary.BigEndian.PutUint32(ip, lastIPInt)
+	return ip
+}
+
+func getLastIPInCidrV6(cidr net.IPNet) net.IP {
+
+	maskLow := binary.BigEndian.Uint64(cidr.Mask[:8])
+	ipIntLow := binary.BigEndian.Uint64(cidr.IP[:8])
+
+	maskHigh := binary.BigEndian.Uint64(cidr.Mask[8:])
+	ipIntHigh := binary.BigEndian.Uint64(cidr.IP[8:])
+
+	ipIntLow = (ipIntLow & maskLow) | (maskLow ^ 0xffffffffffffffff)
+	ipIntHigh = (ipIntHigh & maskHigh) | (maskHigh ^ 0xffffffffffffffff)
+	ip := make(net.IP, 16)
+	binary.BigEndian.PutUint64(ip[:8], ipIntLow)
+	binary.BigEndian.PutUint64(ip[8:], ipIntHigh)
 	return ip
 }
